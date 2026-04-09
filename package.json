@@ -1,0 +1,15 @@
+{
+  "name": "brainstorming-app",
+  "version": "1.0.0",
+  "description": "AI-powered structured brainstorming web app",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "openai": "^4.73.0",
+    "dotenv": "^16.4.5"
+  }
+}
