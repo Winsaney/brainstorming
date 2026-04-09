@@ -16,12 +16,28 @@
   <div class="modal-overlay hidden" id="settings-overlay">
     <div class="modal" id="settings-modal">
       <div class="modal-header">
-        <h2>系统设置</h2>
+        <h2>大模型设置</h2>
         <button class="modal-close" id="btn-close-settings">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
       <div class="modal-body">
+        <div class="form-group">
+          <label>配置环境选择</label>
+          <div style="display:flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+            <select id="setting-profile" style="flex:1; padding: 12px 16px; border: 1px solid var(--border-medium); border-radius: var(--radius-md); background: var(--bg-app); color: var(--text-main); font-size: 0.95rem; outline: none; font-family: inherit;">
+              <option value="">自定义配置</option>
+            </select>
+            <input type="text" id="setting-profile-name" placeholder="配置名称 (如 DeepSeek)" style="flex:1; margin-bottom: 0; padding: 12px 16px; background: var(--bg-app); border: 1px solid var(--border-medium); border-radius: var(--radius-md); color: var(--text-main); font-size: 0.95rem; outline: none;">
+          </div>
+          <div style="display:flex; gap: 8px;">
+            <button class="btn btn-ghost" id="btn-save-profile" style="flex: 1; padding: 6px 0; font-size: 0.85rem;">保存当前配置集</button>
+            <button class="btn btn-ghost" id="btn-delete-profile" style="padding: 6px 12px; color: var(--error); border-color: rgba(184, 58, 58, 0.2); display:none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align: middle;"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+        <div style="height: 1px; background: var(--border-light); margin: 20px 0;"></div>
         <div class="form-group">
           <label for="setting-api-key">API Key</label>
           <input type="password" id="setting-api-key" placeholder="sk-..." autocomplete="off">
@@ -93,7 +109,7 @@
       <div class="sidebar-footer">
         <button class="btn-settings" id="btn-settings">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-          <span>偏好设置</span>
+          <span>大模型设置</span>
         </button>
       </div>
     </aside>
