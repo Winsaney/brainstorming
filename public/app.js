@@ -284,6 +284,9 @@ function initUI() {
     });
 
     chatInput.addEventListener('keydown', (e) => {
+      if (e.isComposing || e.keyCode === 229) {
+        return; // 中文输入法正在拼写时，忽略回车事件
+      }
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSend();
