@@ -105,6 +105,13 @@ function renderSessionList() {
     el.addEventListener('click', (e) => {
       if (e.target.closest('.session-delete')) return;
       switchSession(el.dataset.id);
+      // Auto-close sidebar on mobile after switching
+      if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('show');
+      }
     });
   });
 
