@@ -1012,9 +1012,7 @@ h1, h2, h3, h4, .serif-text {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(28, 26, 25, 0.1);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(28, 26, 25, 0.3);
   z-index: 40;
   opacity: 0;
   transition: opacity var(--duration) var(--ease);
