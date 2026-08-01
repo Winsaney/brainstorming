@@ -4,16 +4,6 @@
 
 > 项目目前处于早期阶段，欢迎试用、反馈与共建。
 
-## DeepSeek Harness 内测招募
-
-如果你是 **Agent Harness 相关开源项目的开发者**，希望参加 **DeepSeek Harness** 的内测，可以回复或私信联系我。请附上：
-
-- GitHub ID
-- 一个或多个开源代表作及链接
-- 你正在探索的 Agent Harness 方向（可选）
-
-也可以通过本仓库的 [Issues](https://github.com/Winsaney/brainstorming/issues) 留言。
-
 ## 为什么做这个项目
 
 生成代码并不总是最难的环节。很多项目真正的问题发生在实施之前：目标没有说清、约束没有识别、方案没有比较、设计没有经过确认，Agent 就直接开始写代码。
@@ -150,4 +140,4 @@ Brainstorming 支持兼容 OpenAI Chat Completions 接口的模型服务。你�
 
 ---
 
-如果这个项目对你有帮助，欢迎 Star。也欢迎 Agent Harness 开发者联系参与 DeepSeek Harness 内测。
+如果这个项目对你有帮助，欢迎 Star。
