@@ -4,44 +4,38 @@
 
 function generateMarkdown(session) {
   if (!session || !session.messages || session.messages.length === 0) {
-    return '# 设计文档\n\n暂无内容。';
+    return '# 设计规格文档\n\n暂无内容。';
   }
 
-  const title = session.title || '设计文档';
-  const date = new Date(session.createdAt).toLocaleDateString('zh-CN', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-  });
-
-  let md = `# ${title}\n\n`;
-  md += `> 生成时间：${date}  \n`;
-  md += `> 工具：BrainStorm AI 头脑风暴\n\n---\n\n`;
-
-  // Extract only assistant messages as the design content
+  // Extract only assistant messages
   const assistantMessages = session.messages.filter(m => m.role === 'assistant');
 
   if (assistantMessages.length === 0) {
-    md += '暂无 AI 回复内容。\n';
-    return md;
+    return '# 设计规格文档\n\n暂无 AI 生成的文档内容。';
   }
 
-  // Find the last long message (likely the final design doc)
-  const lastLongMsg = [...assistantMessages].reverse().find(m => m.content.length > 500);
+  // 优先查找包含阶段 5 标记或以大标题开头的末条回复
+  const reverseAssistantMsgs = [...assistantMessages].reverse();
+  const step5Msg = reverseAssistantMsgs.find(m => m.content.includes('<!-- step:5 -->'));
+  const headerMsg = reverseAssistantMsgs.find(m => m.content.includes('# ') && m.content.length > 150);
+  const targetMsg = step5Msg || headerMsg || reverseAssistantMsgs[0];
 
-  if (lastLongMsg) {
-    md += '## 设计方案\n\n';
-    md += cleanStepMarkers(lastLongMsg.content);
-    md += '\n\n---\n\n';
+  return extractFinalDoc(targetMsg.content);
+}
+
+function extractFinalDoc(text) {
+  let clean = cleanStepMarkers(text);
+
+  // 如果大标题 # 之前有开场客套话（例如："完美的资料！现在我将整合所有信息..."），自动裁切掉开场白
+  const headingIndex = clean.indexOf('# ');
+  if (headingIndex > 0) {
+    const introText = clean.slice(0, headingIndex).trim();
+    if (introText.length < 300) {
+      clean = clean.slice(headingIndex).trim();
+    }
   }
 
-  // Append conversation summary
-  md += '## 对话记录\n\n';
-  session.messages.forEach(msg => {
-    const role = msg.role === 'user' ? '👤 用户' : '🤖 AI';
-    const content = cleanStepMarkers(msg.content);
-    md += `### ${role}\n\n${content}\n\n---\n\n`;
-  });
-
-  return md;
+  return clean;
 }
 
 function cleanStepMarkers(text) {

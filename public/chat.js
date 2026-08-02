@@ -154,7 +154,8 @@ async function sendMessage(content) {
   updateSendButton();
   abortController = new AbortController();
 
-  const config = getConfig();
+  let enableWebSearch = isWebSearchEnabled();
+  const config = { ...getConfig(), enableWebSearch };
   const apiMessages = session.messages.map(m => ({ role: m.role, content: m.content }));
 
   try {
@@ -203,6 +204,16 @@ async function sendMessage(content) {
           const parsed = JSON.parse(data);
           if (parsed.error) {
             showError(parsed.error);
+            continue;
+          }
+          if (parsed.type === 'tool_start') {
+            renderToolStatus(assistantEl, 'tool_start', parsed);
+            scrollToBottom();
+            continue;
+          }
+          if (parsed.type === 'tool_end') {
+            renderToolStatus(assistantEl, 'tool_end', parsed);
+            scrollToBottom();
             continue;
           }
           if (parsed.content) {
@@ -260,6 +271,76 @@ function showError(message) {
   scrollToBottom();
 }
 
+function renderToolStatus(assistantEl, type, data) {
+  const body = assistantEl.querySelector('.message-body');
+  if (!body) return;
+
+  let statusCard = body.querySelector('.tool-status-card');
+  if (!statusCard) {
+    statusCard = document.createElement('div');
+    statusCard.className = 'tool-status-card';
+    body.insertBefore(statusCard, body.firstChild);
+  }
+
+  if (type === 'tool_start') {
+    statusCard.className = 'tool-status-card loading';
+    statusCard.innerHTML = `
+      <div class="tool-status-header">
+        <svg class="icon-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <span>正在联网搜索："<strong>${escapeHtml(data.query)}</strong>"...</span>
+      </div>
+    `;
+  } else if (type === 'tool_end') {
+    statusCard.className = 'tool-status-card completed';
+    const results = data.results || [];
+    const count = results.length;
+
+    let sourcesHtml = '';
+    if (results.length > 0) {
+      sourcesHtml = `
+        <div class="tool-sources-list">
+          ${results.map(r => r.url ? `
+            <a href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer" class="tool-source-chip" title="${escapeHtml(r.snippet || r.title)}">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <span>${escapeHtml(r.title || r.url)}</span>
+            </a>
+          ` : '').join('')}
+        </div>
+      `;
+    }
+
+    statusCard.innerHTML = `
+      <div class="tool-status-header">
+        <svg class="icon-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>已检索并参考 ${count} 条网络背景信息</span>
+      </div>
+      ${sourcesHtml}
+    `;
+  }
+}
+
+function isWebSearchEnabled() {
+  return localStorage.getItem('brainstorm_enable_web_search') === 'true';
+}
+
+function toggleWebSearch() {
+  const current = isWebSearchEnabled();
+  localStorage.setItem('brainstorm_enable_web_search', !current ? 'true' : 'false');
+  updateSearchToggleButton();
+  return !current;
+}
+
+function updateSearchToggleButton() {
+  const btn = document.getElementById('btn-toggle-search');
+  if (!btn) return;
+  const enabled = isWebSearchEnabled();
+  if (enabled) {
+    btn.classList.add('active');
+  } else {
+    btn.classList.remove('active');
+  }
+}
+
 function stopStreaming() {
   if (abortController) {
     abortController.abort();
@@ -272,6 +353,7 @@ function updateSendButton() {
   if (btn) {
     btn.disabled = isStreaming || !input?.value.trim();
   }
+  updateSearchToggleButton();
 }
 
 function getIsStreaming() {
@@ -285,4 +367,7 @@ export const Chat = {
   updateSendButton,
   getIsStreaming,
   scrollToBottom,
+  isWebSearchEnabled,
+  toggleWebSearch,
+  updateSearchToggleButton,
 };

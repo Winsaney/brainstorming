@@ -6,6 +6,7 @@ import { Sessions } from './sessions.js';
 import { Steps } from './steps.js';
 import { Chat } from './chat.js';
 import { Export } from './export.js';
+import { Settings } from './settings.js';
 
 // ===== UI Logic =====
 
@@ -56,156 +57,16 @@ function initUI() {
   if (overlay) overlay.addEventListener('click', closeMobileSidebar);
 
   // --- Settings Modal ---
+  Settings.init();
   const btnSettings = document.getElementById('btn-settings');
-  const btnCloseSettings = document.getElementById('btn-close-settings');
-  const overlaySettings = document.getElementById('settings-overlay');
-  
-  const elProfile = document.getElementById('setting-profile');
-  const elProfileName = document.getElementById('setting-profile-name');
-  const btnSaveProfile = document.getElementById('btn-save-profile');
-  const btnDeleteProfile = document.getElementById('btn-delete-profile');
-  
-  function getProfiles() {
-    return JSON.parse(localStorage.getItem('brainstorm_profiles') || '[]');
-  }
-  
-  function saveProfiles(profiles) {
-    localStorage.setItem('brainstorm_profiles', JSON.stringify(profiles));
-  }
-  
-  function renderProfiles() {
-    const profiles = getProfiles();
-    const activeId = localStorage.getItem('brainstorm_active_profile');
-    
-    if (elProfile) {
-      elProfile.innerHTML = '<option value="">自定义配置</option>';
-      profiles.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.name;
-        elProfile.appendChild(opt);
-      });
-      
-      if (activeId && profiles.find(p => p.id === activeId)) {
-        elProfile.value = activeId;
-        elProfileName.value = profiles.find(p => p.id === activeId).name;
-        btnDeleteProfile.style.display = 'block';
-      } else {
-        elProfile.value = '';
-        elProfileName.value = '';
-        btnDeleteProfile.style.display = 'none';
-        localStorage.removeItem('brainstorm_active_profile');
-      }
-    }
-  }
-
-  function openSettings() {
-    renderProfiles();
-    const config = JSON.parse(localStorage.getItem('brainstorm_settings') || '{}');
-    document.getElementById('setting-api-key').value = config.apiKey || '';
-    document.getElementById('setting-base-url').value = config.baseUrl || '';
-    document.getElementById('setting-model').value = config.model || '';
-    overlaySettings.classList.remove('hidden');
-    // On mobile, close sidebar when opening settings
-    if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-      closeMobileSidebar();
-    }
-  }
-
-  function closeSettings() {
-    overlaySettings.classList.add('hidden');
-  }
-
-  // Handle profile change
-  if (elProfile) {
-    elProfile.addEventListener('change', (e) => {
-      const val = e.target.value;
-      if (!val) {
-        // Custom
-        elProfileName.value = '';
-        btnDeleteProfile.style.display = 'none';
-        localStorage.removeItem('brainstorm_active_profile');
-        return;
-      }
-      
-      const profiles = getProfiles();
-      const p = profiles.find(x => x.id === val);
-      if (p) {
-        document.getElementById('setting-api-key').value = p.apiKey || '';
-        document.getElementById('setting-base-url').value = p.baseUrl || '';
-        document.getElementById('setting-model').value = p.model || '';
-        elProfileName.value = p.name || '';
-        btnDeleteProfile.style.display = 'block';
-        localStorage.setItem('brainstorm_active_profile', p.id);
+  if (btnSettings) {
+    btnSettings.addEventListener('click', () => {
+      Settings.open();
+      if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+        closeMobileSidebar();
       }
     });
   }
-  
-  if (btnSaveProfile) {
-    btnSaveProfile.addEventListener('click', () => {
-      let name = elProfileName.value.trim();
-      if (!name) name = '未命名配置';
-      
-      const apiKey = document.getElementById('setting-api-key').value.trim();
-      const baseUrl = document.getElementById('setting-base-url').value.trim();
-      const model = document.getElementById('setting-model').value.trim();
-      
-      let profiles = getProfiles();
-      let activeId = elProfile.value;
-      
-      if (activeId) {
-        // Update existing
-        const idx = profiles.findIndex(p => p.id === activeId);
-        if (idx >= 0) {
-          profiles[idx] = { ...profiles[idx], name, apiKey, baseUrl, model };
-        }
-      } else {
-        // Create new
-        activeId = Date.now().toString();
-        profiles.push({ id: activeId, name, apiKey, baseUrl, model });
-      }
-      
-      saveProfiles(profiles);
-      localStorage.setItem('brainstorm_active_profile', activeId);
-      renderProfiles();
-      showToast('配置集已保存，请点击"保存配置"生效');
-    });
-  }
-  
-  if (btnDeleteProfile) {
-    btnDeleteProfile.addEventListener('click', () => {
-      const activeId = elProfile.value;
-      if (!activeId) return;
-      
-      let profiles = getProfiles();
-      profiles = profiles.filter(p => p.id !== activeId);
-      saveProfiles(profiles);
-      localStorage.removeItem('brainstorm_active_profile');
-      renderProfiles();
-      showToast('配置集已删除');
-    });
-  }
-
-  const btnSaveSettings = document.getElementById('btn-save-settings');
-  function saveSettings() {
-    const apiKey = document.getElementById('setting-api-key').value.trim();
-    const baseUrl = document.getElementById('setting-base-url').value.trim();
-    const model = document.getElementById('setting-model').value.trim();
-
-    localStorage.setItem('brainstorm_settings', JSON.stringify({
-      apiKey, baseUrl, model
-    }));
-
-    closeSettings();
-    showToast('设置生效并已保存');
-  }
-
-  if (btnSettings) btnSettings.addEventListener('click', openSettings);
-  if (btnCloseSettings) btnCloseSettings.addEventListener('click', closeSettings);
-  if (btnSaveSettings) btnSaveSettings.addEventListener('click', saveSettings);
-  if (overlaySettings) overlaySettings.addEventListener('click', (e) => {
-    if (e.target === overlaySettings) closeSettings();
-  });
 
   // --- Export Modal ---
   const btnExport = document.getElementById('btn-export');
@@ -308,6 +169,16 @@ function initUI() {
     chatInput.value = '';
     resizeInput();
     Chat.sendMessage(val);
+  }
+
+  // --- Web Search Toggle ---
+  const btnToggleSearch = document.getElementById('btn-toggle-search');
+  if (btnToggleSearch) {
+    Chat.updateSearchToggleButton();
+    btnToggleSearch.addEventListener('click', () => {
+      const active = Chat.toggleWebSearch();
+      showToast(active ? '已开启联网搜索 (Tool Use)' : '已关闭联网搜索');
+    });
   }
 
   // --- Welcome Suggestions ---

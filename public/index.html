@@ -14,47 +14,139 @@
 <body>
   <!-- Settings Modal -->
   <div class="modal-overlay hidden" id="settings-overlay">
-    <div class="modal" id="settings-modal">
+    <div class="modal modal-settings" id="settings-modal">
       <div class="modal-header">
-        <h2>大模型设置</h2>
-        <button class="modal-close" id="btn-close-settings">
+        <div class="modal-title-group">
+          <button class="btn-icon-back hidden" id="btn-back-settings" title="返回列表">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </button>
+          <div>
+            <h2 id="settings-modal-title">大模型 API 设置</h2>
+            <p class="modal-subtitle" id="settings-modal-subtitle">管理并选择您的 AI 模型服务商与 API 凭证</p>
+          </div>
+        </div>
+        <button class="modal-close" id="btn-close-settings" title="关闭">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>配置环境选择</label>
-          <div style="display:flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-            <select id="setting-profile" style="flex:1; padding: 12px 16px; border: 1px solid var(--border-medium); border-radius: var(--radius-md); background: var(--bg-app); color: var(--text-main); font-size: 0.95rem; outline: none; font-family: inherit;">
-              <option value="">自定义配置</option>
-            </select>
-            <input type="text" id="setting-profile-name" placeholder="配置名称 (如 DeepSeek)" style="flex:1; margin-bottom: 0; padding: 12px 16px; background: var(--bg-app); border: 1px solid var(--border-medium); border-radius: var(--radius-md); color: var(--text-main); font-size: 0.95rem; outline: none;">
-          </div>
-          <div style="display:flex; gap: 8px;">
-            <button class="btn btn-ghost" id="btn-save-profile" style="flex: 1; padding: 6px 0; font-size: 0.85rem;">保存当前配置集</button>
-            <button class="btn btn-ghost" id="btn-delete-profile" style="padding: 6px 12px; color: var(--error); border-color: rgba(184, 58, 58, 0.2); display:none;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align: middle;"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+
+      <div class="modal-body settings-body">
+        <!-- Config List View -->
+        <div class="config-list-section">
+          <div class="config-list-topbar">
+            <span class="config-list-count-text">支持 DeepSeek / OpenAI / SenseNova / NVIDIA / Claude / 智谱 / 千问 / Ollama</span>
+            <button class="btn btn-primary-sm btn-add-config" id="btn-add-config">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              <span>新增配置</span>
             </button>
           </div>
+
+          <div class="config-list" id="config-list">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Empty State -->
+          <div class="config-empty hidden" id="config-empty">
+            <div class="empty-icon-circle">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+            </div>
+            <p class="empty-title">尚未添加大模型 API 配置</p>
+            <p class="config-empty-hint">您可以配置 DeepSeek、SenseNova、NVIDIA、OpenAI 或本地 Ollama 模型开始头脑风暴</p>
+          </div>
         </div>
-        <div style="height: 1px; background: var(--border-light); margin: 20px 0;"></div>
-        <div class="form-group">
-          <label for="setting-api-key">API Key</label>
-          <input type="password" id="setting-api-key" placeholder="sk-..." autocomplete="off">
-          <p class="form-hint">支持 OpenAI 兼容格式的凭证</p>
-        </div>
-        <div class="form-group">
-          <label for="setting-base-url">API Base URL</label>
-          <input type="text" id="setting-base-url" placeholder="https://api.openai.com/v1">
-          <p class="form-hint">留空则使用服务器端默认配置</p>
-        </div>
-        <div class="form-group">
-          <label for="setting-model">推理模型</label>
-          <input type="text" id="setting-model" placeholder="gpt-4o">
+
+        <!-- Config Editor View -->
+        <div class="config-editor hidden" id="config-editor">
+          <input type="hidden" id="editing-config-id">
+
+          <div class="form-group">
+            <label for="setting-provider">服务商预设</label>
+            <div class="select-wrapper">
+              <select id="setting-provider" class="form-select">
+                <option value="DeepSeek">DeepSeek (官方/兼容)</option>
+                <option value="OpenAI">OpenAI</option>
+                <option value="SenseNova">SenseNova (商汤日日新)</option>
+                <option value="NVIDIA">NVIDIA NIM (AI Gateway)</option>
+                <option value="Anthropic">Anthropic (Claude)</option>
+                <option value="智谱 (Zhipu)">智谱 AI (GLM)</option>
+                <option value="通义千问 (Qwen)">通义千问 (Qwen)</option>
+                <option value="Ollama">Ollama (本地/远程)</option>
+                <option value="自定义">自定义 API 服务商</option>
+              </select>
+              <svg class="select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="setting-model">模型名称</label>
+              <span class="label-hint">必填</span>
+            </div>
+            <input type="text" id="setting-model" placeholder="例如 deepseek-chat、gpt-4o">
+            <div class="model-quick-tags" id="model-quick-tags">
+              <!-- Quick tags rendered by JS -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="setting-base-url">API Base URL</label>
+              <span class="label-optional">(留空使用服务商默认)</span>
+            </div>
+            <input type="text" id="setting-base-url" placeholder="https://api.openai.com/v1">
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="setting-api-key">API Key (凭证)</label>
+              <span class="label-hint danger-text">*</span>
+            </div>
+            <div class="api-key-field">
+              <input type="password" id="setting-api-key" placeholder="sk-..." autocomplete="off">
+              <button class="btn-toggle-key" id="btn-toggle-key" type="button" title="显示/隐藏 API Key">
+                <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="icon-eye-off hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group form-group-row">
+            <div class="toggle-info">
+              <span class="toggle-label">设为当前使用配置</span>
+              <span class="toggle-desc">保存后直接作为当前头脑风暴对话的 AI 模型</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-enabled" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="setting-remark">配置名称 / 备注 <span class="label-optional">(可选)</span></label>
+            <input type="text" id="setting-remark" placeholder="例如：DeepSeek 主力、测试体验 key">
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="setting-tavily-key">Tavily Search API Key <span class="label-optional">(可选高质搜索引擎)</span></label>
+            </div>
+            <input type="password" id="setting-tavily-key" placeholder="tvly-..." autocomplete="off">
+            <span class="field-hint" style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px; display: block;">留空时默认使用免 Key 的 DuckDuckGo 网页搜索引擎。</span>
+          </div>
+
+          <!-- Test Result -->
+          <div class="test-result hidden" id="test-result"></div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" id="btn-save-settings">保存配置</button>
+
+      <div class="modal-footer" id="settings-footer">
+        <button class="btn btn-ghost" id="btn-close-modal-footer">关闭</button>
+        <button class="btn btn-ghost" id="btn-cancel-editor" style="display:none;">取消</button>
+        <button class="btn btn-secondary" id="btn-test-connection" style="display:none;">
+          <svg class="btn-test-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span class="btn-test-label">测试连接</span>
+        </button>
+        <button class="btn btn-primary" id="btn-save-settings" style="display:none;">保存并生效</button>
       </div>
     </div>
   </div>
@@ -175,10 +267,20 @@
           </button>
         </div>
         <div class="input-footer">
-          <button class="btn-export" id="btn-export">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            <span>生成规格文档</span>
-          </button>
+          <div class="input-footer-left">
+            <button class="btn-export" id="btn-export">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span>生成规格文档</span>
+            </button>
+            <button class="btn-toggle-search" id="btn-toggle-search" title="开启/关闭 联网搜索 (Tool Call)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <span>联网搜索</span>
+            </button>
+          </div>
           <span class="step-hint" id="step-hint">构思阶段 · 探索</span>
         </div>
       </div>
